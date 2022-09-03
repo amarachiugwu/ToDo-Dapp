@@ -18,12 +18,72 @@ async function getTodoList() {
 }
 
 
+
+
+
+async function updateTodoDetails(id) {
+  await connectWallet();
+  var newTitle = document.getElementById('newTitle').value;
+  var newDesc = document.getElementById('newDesc').value;
+  if (newTitle != '' || newDesc != '' ) {
+    const contract = getContract(true);
+
+    try {
+      const response = await contract.updateTodo(id, newTitle, newDesc);
+      await response.wait();
+      console.log(response);
+      console.log('update successful');
+    } catch (error) {
+      console.log("error", error);
+    }
+  }else{
+    alert('Fill todo details appropriately');
+  }
+}
+
+$(document).on('click', '.updateBtn', function(){
+  var rid=$(this).val();
+  $('#updateTodoModal').modal('show');
+  $('.modal-footer #confirmTodoUpdate').val(rid);
+});
+
+$(document).on('click', '#confirmTodoUpdate', async function(){
+  var id=$(this).val();
+  $('#updateTodoModal').modal('hide');
+  $('body').removeClass('modal-open');
+  $('.modal-backdrop').remove();
+
+  await connectWallet();
+  var newTitle = document.getElementById('newTitle').value;
+  var newDesc = document.getElementById('newDesc').value;
+  if (newTitle != '' || newDesc != '' ) {
+    const contract = getContract(true);
+
+    try {
+      const response = await contract.updateTodo(id, newTitle, newDesc);
+      await response.wait();
+      console.log(response);
+      alert('update successful');
+    } catch (error) {
+      console.log("error", error);
+    }
+  }else{
+    alert('Fill todo details appropriately');
+  }
+    
+});
+
+
 const upadateTodoUI = async () => {
   const data = await getTodoList();
   console.log(data, "data");
-  data.forEach((item) => {
-    todos.innerHTML += `   
-    <li class='my-2'>${item.description}</li>`;
+  data.map((item, index) => {
+    todos.innerHTML += `
+    <li class='my-2'>${item.description} 
+    <button type="button" style="float:right; cursor:pointer; padding:0 5px" class="updateBtn btn btn-primary" data-toggle="modal" value="${index}" data-target="#updateTodoModal">
+      edit
+    </button>
+    </li>`;
   });
 };
 
@@ -33,10 +93,14 @@ const connectWallet = async () => {
   await signerProvider.send("eth_requestAccounts");
 };
 
-addBtn.addEventListener('click', async function addToDo(){
+
+// add new list
+
+addBtn.addEventListener('click', async () => {
   await connectWallet();
-  const todoTitle = document.getElementById('todoTitle').value;
-  const todoDesc = document.getElementById('todoDesc').value;
+  var todoTitle = document.getElementById('todoTitle').value;
+  var todoDesc = document.getElementById('todoDesc').value;
+  console.log(todoTitle, todoDesc);
   if (todoTitle != '' || todoDesc != '' ) {
     const contract = getContract(true);
 
@@ -52,5 +116,3 @@ addBtn.addEventListener('click', async function addToDo(){
     alert('Fill todo details appropriately');
   }
 });
-
-// add new list
